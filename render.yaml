@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: webservice-senior-connect
+    env: java
+    buildCommand: ./mvnw clean package
+    startCommand: java -Dserver.port=$PORT -jar target/*.jar
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: production
