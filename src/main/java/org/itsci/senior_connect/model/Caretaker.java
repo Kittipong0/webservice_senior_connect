@@ -15,13 +15,15 @@ import java.util.Set;
 @EqualsAndHashCode(callSuper = true)
 public class Caretaker extends Member {
 
-    @Column(unique = true)
     private String caretakerName;
 
     private String address;
 
     @Column(unique = true)
     private String caretakerTel;
+
+    @Temporal(TemporalType.DATE)
+    private Calendar caretakerDateOfBirth;
 
     @Column(unique = true)
     private String caretakerEmail;
@@ -33,19 +35,21 @@ public class Caretaker extends Member {
     // Custom constructor: for full member info + caretaker fields
     public Caretaker(String memberUserName, String memberPassword, Boolean memberStatus, Calendar memberDate,
                      String memberType, String memberImage, String memberUID,
-                     String caretakerName, String address, String caretakerTel, String caretakerEmail) {
+                     String caretakerName, String address, String caretakerTel, Calendar caretakerDateOfBirth, String caretakerEmail) {
         super(memberUserName, memberPassword, memberStatus, memberDate, memberType, memberImage, memberUID);
         this.caretakerName = caretakerName;
         this.address = address;
         this.caretakerTel = caretakerTel;
+        this.caretakerDateOfBirth = caretakerDateOfBirth;
         this.caretakerEmail = caretakerEmail;
     }
 
     // Custom constructor: only caretaker info (for partial use)
-    public Caretaker(String caretakerName, String address, String caretakerTel, String caretakerEmail) {
+    public Caretaker(String caretakerName, String address, String caretakerTel, Calendar caretakerDateOfBirth, String caretakerEmail) {
         this.caretakerName = caretakerName;
         this.address = address;
         this.caretakerTel = caretakerTel;
+        this.caretakerDateOfBirth = caretakerDateOfBirth;
         this.caretakerEmail = caretakerEmail;
     }
 }

@@ -7,7 +7,9 @@ import org.itsci.senior_connect.repository.MemberRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.text.SimpleDateFormat;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Random;
@@ -49,6 +51,9 @@ public class MemberService {
             if (memberOptional.isPresent()) {
                 Member member = memberOptional.get();
                 if (member.getMemberPassword().equals(password)) {
+                    if (!member.getMemberStatus()) {
+                        return "บัญชีถูกปิดการใช้งาน โปรดติดต่อผู้ดูแลระบบ";
+                    }
                     return "login success";
                 } else {
                     return "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
@@ -87,21 +92,18 @@ public class MemberService {
 
             if (map.containsKey("seniorDateOfBirth")) {
                 try {
-                    Map<String, Integer> dateMap = (Map<String, Integer>) map.get("seniorDateOfBirth");
+                    // คาดว่ามาในรูปแบบ "yyyy-MM-dd"
+                    String dateStr = (String) map.get("seniorDateOfBirth");
+                    SimpleDateFormat sdf = new SimpleDateFormat("dd/MM/yyyy");
+                    Date date = sdf.parse(dateStr);
                     Calendar calendar = Calendar.getInstance();
-                    calendar.set(
-                        dateMap.getOrDefault("year", calendar.get(Calendar.YEAR)),
-                        dateMap.getOrDefault("month", calendar.get(Calendar.MONTH)) - 1,
-                        dateMap.getOrDefault("dayOfMonth", calendar.get(Calendar.DAY_OF_MONTH)),
-                        dateMap.getOrDefault("hourOfDay", 0),
-                        dateMap.getOrDefault("minute", 0),
-                        dateMap.getOrDefault("second", 0)
-                    );
+                    calendar.setTime(date);
                     senior.setSeniorDateOfBirth(calendar);
                 } catch (Exception e) {
-                    throw new IllegalArgumentException("รูปแบบวันเกิดไม่ถูกต้อง");
+                    throw new IllegalArgumentException("รูปแบบวันเกิดไม่ถูกต้อง (ต้องเป็น dd/MM/yyyy)");
                 }
             }
+
         } else if ("ผู้ดูแล".equals(member.getMemberType()) && member instanceof Caretaker) {
             Caretaker caretaker = (Caretaker) member;
             caretaker.setCaretakerName((String) map.getOrDefault("caretakerName", caretaker.getCaretakerName()));
@@ -109,8 +111,10 @@ public class MemberService {
             caretaker.setCaretakerTel((String) map.getOrDefault("caretakerTel", caretaker.getCaretakerTel()));
             caretaker.setCaretakerEmail((String) map.getOrDefault("caretakerEmail", caretaker.getCaretakerEmail()));
         }
+
         return memberRepository.save(member);
     }
+
 
 
     public boolean deactivateAccount(String memberUserName) {

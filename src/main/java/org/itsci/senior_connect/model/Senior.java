@@ -16,7 +16,6 @@ import java.util.Set;
 @AllArgsConstructor
 public class Senior extends Member {
 
-    @Column(unique = true)
     private String seniorName;
 
     @Column(unique = true)
@@ -27,6 +26,7 @@ public class Senior extends Member {
     @Column(unique = true)
     private String seniorEmail;
 
+    @Temporal(TemporalType.DATE)
     private Calendar seniorDateOfBirth;
 
     private String emergencyName;
