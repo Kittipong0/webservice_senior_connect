@@ -38,8 +38,9 @@ public class MemberController {
             String password = map.get("password");
             String memberType = map.get("memberType");
             String memberImage = map.get("memberImage");
+            String memberGender = map.get("memberGender");
 
-            Member member = memberService.registerMember(memberUserName, password, memberType, memberImage);
+            Member member = memberService.registerMember(memberUserName, password, memberType, memberImage, memberGender);
             if (member != null) {
                 return new ResponseObj(HttpStatus.OK.value(), member);
             } else {
@@ -52,17 +53,19 @@ public class MemberController {
     }
 
     @PostMapping("/login")
-    public ResponseObj loginMember(@RequestBody Map<String, String> map) {
+    public ResponseObj doLoginMember(@RequestBody Map<String, String> map) {
         try {
             String memberUserName = map.get("memberUserName");
             String password = map.get("password");
-
-            String loginMessage = memberService.loginMember(memberUserName, password);
-
-            if ("login success".equals(loginMessage)) {
+            String checkStatusMember = memberService.checkStatusMember(memberUserName);
+            if (checkStatusMember.equals("บัญชีถูกปิดการใช้งาน")) {
+                return new ResponseObj(HttpStatus.OK.value(), checkStatusMember);
+            }
+            String doLoginMessage = memberService.doLoginMember(memberUserName, password);
+            if ("login success".equals(doLoginMessage)) {
                 return new ResponseObj(HttpStatus.OK.value(), "1");
             } else {
-                return new ResponseObj(HttpStatus.OK.value(), loginMessage);
+                return new ResponseObj(HttpStatus.OK.value(), doLoginMessage);
             }
         } catch (Exception e) {
             e.printStackTrace();
@@ -94,7 +97,7 @@ public class MemberController {
         try {
             ObjectMapper mapper = new ObjectMapper();
             Map<String, Object> map = mapper.readValue(dataJson, new TypeReference<Map<String, Object>>() {});
-            
+
             String memberUserName = (String) map.get("memberUserName");
             if (memberUserName == null || memberUserName.isEmpty()) {
                 return new ResponseObj(HttpStatus.BAD_REQUEST.value(), "memberUserName ไม่สามารถเว้นว่างได้");
@@ -107,16 +110,28 @@ public class MemberController {
             }
 
             if (file != null && !file.isEmpty()) {
+                // ตรวจสอบขนาดไฟล์ไม่เกิน 20MB
+                long maxFileSize = 20 * 1024 * 1024; // 20MB
+                if (file.getSize() > maxFileSize) {
+                    return new ResponseObj(HttpStatus.BAD_REQUEST.value(), "ขนาดไฟล์เกิน 20MB");
+                }
+
                 String originalFileName = file.getOriginalFilename();
+                String fileExtension = "";
+
+                int dotIndex = originalFileName.lastIndexOf('.');
+                if (dotIndex >= 0) {
+                    fileExtension = originalFileName.substring(dotIndex); // เช่น ".jpg"
+                }
+
                 String uploadDir = "E:/web_api/senior_connect/src/main/java/org/itsci/senior_connect/assets/images/";
                 File uploadPath = new File(uploadDir);
-
                 if (!uploadPath.exists()) {
                     uploadPath.mkdirs();
                 }
 
-                // ลบรูปภาพเก่าถ้ามี
-                String oldFileName = existingMember.getMemberImage(); // ดึงจาก DB
+                // ลบรูปภาพเก่าหากมี
+                String oldFileName = existingMember.getMemberImage();
                 if (oldFileName != null && !oldFileName.isEmpty()) {
                     File oldFile = new File(uploadDir + oldFileName);
                     if (oldFile.exists()) {
@@ -124,31 +139,21 @@ public class MemberController {
                     }
                 }
 
-                // ตั้งชื่อไฟล์ใหม่หากซ้ำ
-                String fileNameWithoutExt;
-                String fileExtension = "";
-                int dotIndex = originalFileName.lastIndexOf('.');
-                if (dotIndex >= 0) {
-                    fileNameWithoutExt = originalFileName.substring(0, dotIndex);
-                    fileExtension = originalFileName.substring(dotIndex);
-                } else {
-                    fileNameWithoutExt = originalFileName;
-                }
-
-                String newFileName = originalFileName;
+                // ตั้งชื่อใหม่ตาม memberUserName
+                String newFileName = memberUserName + fileExtension;
                 File newFile = new File(uploadDir + newFileName);
-                int count = 1;
-                while (newFile.exists()) {
-                    newFileName = fileNameWithoutExt + "(" + count + ")" + fileExtension;
-                    newFile = new File(uploadDir + newFileName);
-                    count++;
+
+                // ลบไฟล์ใหม่ถ้ามีอยู่แล้ว เพื่อแทนที่
+                if (newFile.exists()) {
+                    newFile.delete();
                 }
 
+                // เขียนไฟล์ใหม่
                 try (FileOutputStream fout = new FileOutputStream(newFile)) {
                     fout.write(file.getBytes());
                 }
 
-                // ใส่ชื่อไฟล์ใหม่ใน map เพื่ออัปเดตใน DB
+                // อัปเดตชื่อไฟล์ใหม่ลง map
                 map.put("memberImage", newFileName);
             }
 
@@ -163,9 +168,6 @@ public class MemberController {
             return new ResponseObj(HttpStatus.INTERNAL_SERVER_ERROR.value(), "การอัปเดตข้อมูลสมาชิกล้มเหลว");
         }
     }
-
-
-
 
 
     @PostMapping("/deactivateAccount")

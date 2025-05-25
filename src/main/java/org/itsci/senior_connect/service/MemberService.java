@@ -22,7 +22,7 @@ public class MemberService {
 
     private static final String SALT = "123456";
 
-    public Member registerMember(String memberUserName, String password, String memberType, String memberImage) {
+    public Member registerMember(String memberUserName, String password, String memberType, String memberImage, String memberGender) {
         try {
             PasswordUtil util = new PasswordUtil();
             password = util.createPassword(password, SALT);
@@ -35,7 +35,7 @@ public class MemberService {
                 result = memberRepository.findByMemberUID(String.valueOf(memberUID)).isPresent();
             } while (result);
 
-            Member member = new Member(memberUserName, password, memberType, memberImage, String.valueOf(memberUID));
+            Member member = new Member(memberUserName, password, memberType, memberImage, String.valueOf(memberUID), memberGender);
             return memberRepository.save(member);
         } catch (Exception e) {
             e.printStackTrace();
@@ -43,7 +43,7 @@ public class MemberService {
         }
     }
 
-    public String loginMember(String memberUserName, String password) {
+    public String doLoginMember(String memberUserName, String password) {
         try {
             PasswordUtil util = new PasswordUtil();
             password = util.createPassword(password, SALT);
@@ -51,9 +51,6 @@ public class MemberService {
             if (memberOptional.isPresent()) {
                 Member member = memberOptional.get();
                 if (member.getMemberPassword().equals(password)) {
-                    if (!member.getMemberStatus()) {
-                        return "บัญชีถูกปิดการใช้งาน โปรดติดต่อผู้ดูแลระบบ";
-                    }
                     return "login success";
                 } else {
                     return "ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง";
@@ -64,6 +61,19 @@ public class MemberService {
             e.printStackTrace();
             return "เกิดขึ้นข้อผิดพลาดในการเข้าสู่ระบบ";
         }
+    }
+
+    public String checkStatusMember(String memberUserName) {
+        Optional<Member> memberOptional = memberRepository.findByMemberUserName(memberUserName);
+        if (memberOptional.isPresent()) {
+            Member member = memberOptional.get();
+            if (member.getMemberStatus()) {
+                return "บัญชีใช้งานอยู่";
+            } else {
+                return "บัญชีถูกปิดการใช้งาน";
+            }
+        }
+        return "ไม่พบสมาชิก";
     }
 
     public Member getProfile(String memberUserName) {
@@ -78,7 +88,8 @@ public class MemberService {
 
         member.setMemberImage((String) map.getOrDefault("memberImage", member.getMemberImage()));
         member.setMemberUID((String) map.getOrDefault("memberUID", member.getMemberUID()));
-        member.setMemberStatus(true);
+        member.setMemberStatus((Boolean) map.getOrDefault("memberStatus", member.getMemberStatus()));
+        member.setMemberGender((String) map.getOrDefault("memberGender", member.getMemberGender()));
 
         if ("ผู้สูงอายุ".equals(member.getMemberType()) && member instanceof Senior) {
             Senior senior = (Senior) member;

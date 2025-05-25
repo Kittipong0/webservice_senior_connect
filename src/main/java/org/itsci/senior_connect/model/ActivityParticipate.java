@@ -1,7 +1,8 @@
 package org.itsci.senior_connect.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -9,9 +10,15 @@ import java.util.Calendar;
 
 @Entity
 @Table(name = "activityParticipates")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@JsonIdentityInfo(
+  generator = ObjectIdGenerators.PropertyGenerator.class,
+  property = "acparId"
+)
 public class ActivityParticipate {
 
     @Id
@@ -25,12 +32,10 @@ public class ActivityParticipate {
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "activityId")
-    @JsonBackReference
     private Activity activity;
 
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "seniorId")
-    @JsonIgnoreProperties("activityParticipates")
     private Senior senior;
 
     // Optional: Constructor for date + status only

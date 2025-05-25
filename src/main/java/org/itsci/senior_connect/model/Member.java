@@ -28,8 +28,10 @@ public class Member {
 
     private String memberUID;
 
+    private String memberGender;
+
     // Custom constructor for default values
-    public Member(String memberUserName, String memberPassword, String memberType, String memberImage, String memberUID) {
+    public Member(String memberUserName, String memberPassword, String memberType, String memberImage, String memberUID, String memberGender) {
         this.memberUserName = memberUserName;
         this.memberPassword = memberPassword;
         this.memberType = memberType;
@@ -37,5 +39,6 @@ public class Member {
         this.memberUID = memberUID;
         this.memberStatus = true;
         this.memberDate = Calendar.getInstance();
+        this.memberGender = memberGender;
     }
 }

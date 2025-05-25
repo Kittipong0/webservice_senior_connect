@@ -1,8 +1,8 @@
 package org.itsci.senior_connect.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -12,9 +12,15 @@ import java.util.Set;
 
 @Entity
 @Table(name = "activitys")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
+@JsonIdentityInfo(
+  generator = ObjectIdGenerators.PropertyGenerator.class,
+  property = "activityId"
+)
 public class Activity {
 
     @Id
@@ -40,19 +46,17 @@ public class Activity {
 
     private String activityImage;
 
-    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JsonManagedReference
+    @OneToMany(mappedBy = "activity", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Set<ActivityParticipate> participants = new HashSet<>();
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "actOwnerId")
-    @JsonIgnoreProperties("activitys")
     private ActivityOwner activityOwner;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "typeId")
-    @JsonIgnoreProperties("activitys")
     private ActivityType type;
+
 
     // Constructor without ID and relationships
     public Activity(String activityName, String activityLocation, Calendar activityStartDate,
@@ -68,4 +72,3 @@ public class Activity {
         this.activityImage = activityImage;
     }
 }
-

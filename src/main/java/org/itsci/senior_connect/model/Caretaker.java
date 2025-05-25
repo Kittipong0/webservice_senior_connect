@@ -34,9 +34,9 @@ public class Caretaker extends Member {
 
     // Custom constructor: for full member info + caretaker fields
     public Caretaker(String memberUserName, String memberPassword, Boolean memberStatus, Calendar memberDate,
-                     String memberType, String memberImage, String memberUID,
+                     String memberType, String memberImage, String memberUID, String memberGender,
                      String caretakerName, String address, String caretakerTel, Calendar caretakerDateOfBirth, String caretakerEmail) {
-        super(memberUserName, memberPassword, memberStatus, memberDate, memberType, memberImage, memberUID);
+        super(memberUserName, memberPassword, memberStatus, memberDate, memberType, memberImage, memberUID, memberGender);
         this.caretakerName = caretakerName;
         this.address = address;
         this.caretakerTel = caretakerTel;

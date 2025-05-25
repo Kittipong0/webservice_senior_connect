@@ -46,10 +46,10 @@ public class Senior extends Member {
 
     // Custom constructor without activityParticipates & caretaker
     public Senior(String memberUserName, String memberPassword, Boolean memberStatus, Calendar memberDate,
-            String memberType, String memberImage, String memberUID, String seniorName, String seniorTel,
+            String memberType, String memberImage, String memberUID, String memberGender, String seniorName, String seniorTel,
             String address, String seniorEmail, Calendar seniorDateOfBirth, String emergencyName,
             String emergencyRelationship, String emergencyContact) {
-        super(memberUserName, memberPassword, memberStatus, memberDate, memberType, memberImage, memberUID);
+        super(memberUserName, memberPassword, memberStatus, memberDate, memberType, memberImage, memberUID, memberGender);
         this.seniorName = seniorName;
         this.seniorTel = seniorTel;
         this.address = address;
