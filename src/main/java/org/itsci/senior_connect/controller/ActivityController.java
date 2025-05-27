@@ -37,30 +37,45 @@ public class ActivityController {
     private ActivityServiceImpl activityServiceImpl;
 
     @PostMapping("/getActivity")
-    public ResponseObj getActivitiesByPage(@RequestBody Map<String, Integer> map) {
-        int page = map.getOrDefault("page", 0);
-        int size = map.getOrDefault("size", 10);
+    public ResponseObj getActivitiesByPage(@RequestBody Map<String, Object> map) {
+        int page = 1;
+        int size = 10;
+        String sortBy = "ล่าสุด"; // default sort
+        String searchQuery = "";
+        try {
+            if (map.get("page") instanceof Integer) {
+                page = (Integer) map.get("page");
+            } else if (map.get("page") instanceof String) {
+                page = Integer.parseInt((String) map.get("page"));
+            }
+            if (map.get("size") instanceof Integer) {
+                size = (Integer) map.get("size");
+            } else if (map.get("size") instanceof String) {
+                size = Integer.parseInt((String) map.get("size"));
+            }
+            if (map.get("sort") instanceof String) {
+                sortBy = (String) map.get("sort");
+            }
+            if (map.get("search") instanceof String) {
+                searchQuery = (String) map.get("search");
+            }
+        } catch (Exception e) {
+            return new ResponseObj(400, "ข้อมูลที่ส่งมาไม่ถูกต้อง");
+        }
         if (page < 0 || size <= 0) {
             return new ResponseObj(400, "ค่าหน้าและขนาดต้องเป็นค่าบวก");
         }
         try {
-            List<Activity> allActivities = activityService.getAllActivities();
-            if (allActivities.size() <= 10) {
-                List<ActivityDTO> dtos = allActivities.stream()
-                        .map(activity -> activityServiceImpl.convertToDTO(activity))
-                        .toList();
-                return new ResponseObj(200, dtos);
-            }
-            Page<Activity> activitiesPage = activityService.getActivitiesByPage(page, size);
-            List<ActivityDTO> activityDTOs = activitiesPage.getContent().stream()
-                    .map(activity -> activityServiceImpl.convertToDTO(activity))
-                    .toList();
+            // สมมติ service มี method รับ search และ sort ด้วย
+            Page<ActivityDTO> activitiesPage = activityService.getActivitiesByPageAndSearchAndSort(page, size, searchQuery, sortBy);
+            List<ActivityDTO> activityDTOs = activitiesPage.getContent();
             return new ResponseObj(200, activityDTOs);
         } catch (Exception e) {
             e.printStackTrace();
             return new ResponseObj(500, "เกิดข้อผิดพลาดในการดึงข้อมูลกิจกรรม");
         }
     }
+
 
     @PostMapping("/getActivityDetail")
     public ResponseObj getActivityDetail(@RequestBody Map<String, String> map) {
